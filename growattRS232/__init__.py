@@ -3,10 +3,8 @@ Python wrapper for getting data asynchonously from Growatt inverters via serial 
 """
 
 import logging
-import asyncio
 import os
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
-from pymodbus.exceptions import ModbusIOException, ConnectionException
 
 from .const import *
 
@@ -113,12 +111,12 @@ class GrowattRS232:
                     return None
 
             rir1 = self._client.read_input_registers(0, 44, unit=self._unit)
-            if type(rir1) is ModbusIOException:
+            if rir1.isError():
                 self._client.close()
                 return None
 
             rir2 = self._client.read_input_registers(45, 21, unit=self._unit)
-            if type(rir2) is ModbusIOException:
+            if rir2.isError():
                 self._client.close()
                 return None
 
