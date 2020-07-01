@@ -1,6 +1,5 @@
-[![GitHub Release][releases-shield]][releases]
 [![PyPI][pypi-releases-shield]][pypi-releases]
-[![PyPI - Downloads][pypi-downloads]][pypi-statistics]
+[![GitHub issues](https://img.shields.io/github/issues/ArdescoConsulting/growattRS232.svg)](https://GitHub.com/ArdescoConsulting/growattRS232/issues/)
 
 # growattRS232
 
@@ -111,9 +110,5 @@ loop.run_until_complete(main())
 loop.close()
 ```
 
-[releases]: https://github.com/ArdescoConsulting/growattRS232/releases
-[releases-shield]: https://img.shields.io/github/release/ArdescoConsulting/growattRS232.svg?style=popout
 [pypi-releases]: https://pypi.org/project/growattRS232
-[pypi-statistics]: https://pypistats.org/packages/growattRS232
 [pypi-releases-shield]: https://img.shields.io/pypi/v/growattRS232
-[pypi-downloads]: https://img.shields.io/pypi/dm/growattRS232
