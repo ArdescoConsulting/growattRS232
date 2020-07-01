@@ -4,6 +4,7 @@ Python wrapper for getting data asynchonously from Growatt inverters via serial 
 
 import logging
 import os
+
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 
 from .const import *
