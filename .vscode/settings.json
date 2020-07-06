@@ -4,7 +4,7 @@
     "python.linting.pylintEnabled": false,
     "python.formatting.provider": "black",
     "python.formatting.blackArgs": [
-        "--line-length 79"
+        "--line-length=79"
     ],
     "cSpell.words": [
         "EEPROM",
@@ -19,6 +19,8 @@
         "mypy",
         "pycodestyle",
         "pydocstyle",
+        "rsdf",
+        "rssf",
         "setuptools",
         "tabnine",
         "unmatch",

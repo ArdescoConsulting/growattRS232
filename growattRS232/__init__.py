@@ -6,6 +6,8 @@ import logging
 import os
 
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+from pymodbus.exceptions import ConnectionException, ModbusException
+from pymodbus.pdu import ExceptionResponse
 
 from growattRS232.const import (
     ATTR_DERATING,
@@ -65,11 +67,13 @@ from growattRS232.const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def read_scale_single_to_float(rr, index, scale=10):
+def rssf(rr, index, scale=10):
+    # Read and scale single to float
     return float(rr.registers[index]) / scale
 
 
-def read_scale_double_to_float(rr, index, scale=10):
+def rsdf(rr, index, scale=10):
+    # Read and scale double to float
     return float((rr.registers[index] << 16) + rr.registers[index + 1]) / scale
 
 
@@ -117,11 +121,24 @@ class GrowattRS232:
         on the firmware version of your inverter.
         """
 
-        if os.path.exists(self._port) and self._client.connect():
+        if not os.path.exists(self._port):
+            self.data = {}
+            raise PortError(f"USB port {self._port} is not available")
+
+        self._client.timeout = True
+        if not self._client.connect():
+            self.data = {}
+            raise ModbusError("Modbus connection failed.")
+
+        try:
             if self.serial_number == "":
                 rhr = self._client.read_holding_registers(
                     0, 30, unit=self._unit
                 )
+
+                if isinstance(rhr, (ModbusException, ExceptionResponse)):
+                    raise ModbusError("Modbus read failed")
+
                 if not rhr.isError():
                     self.firmware = str(
                         chr(rhr.registers[9] >> 8)
@@ -167,20 +184,20 @@ class GrowattRS232:
                             and has firmware {self.firmware}"
                     )
                 else:
+                    self.data = {}
                     self.firmware = ""
                     self.serial_number = ""
                     self.model_number = ""
                     self._client.close()
-                    return None
+                    raise ModbusError("Modbus read failed")
+
             rir1 = self._client.read_input_registers(0, 44, unit=self._unit)
             if rir1.isError():
-                self._client.close()
-                return None
+                raise ModbusError("Modbus read failed")
+
             rir2 = self._client.read_input_registers(45, 21, unit=self._unit)
             if rir2.isError():
-                self._client.close()
-                return None
-            self._client.close()
+                raise ModbusError("Modbus read failed")
 
             # Inverter properties
             data[ATTR_SERIAL_NUMBER] = self.serial_number
@@ -188,81 +205,55 @@ class GrowattRS232:
             data[ATTR_FIRMWARE] = self.firmware
 
             # DC input PV
-            data[ATTR_INPUT_POWER] = read_scale_double_to_float(rir1, 1)
-            data[ATTR_INPUT_ENERGY_TODAY] = read_scale_double_to_float(
-                rir2, 11
-            )
+            data[ATTR_INPUT_POWER] = rsdf(rir1, 1)
+            data[ATTR_INPUT_ENERGY_TODAY] = rsdf(rir2, 11)
 
             # DC input string 1 PV
-            data[ATTR_INPUT_1_VOLTAGE] = read_scale_single_to_float(rir1, 3)
-            data[ATTR_INPUT_1_AMPERAGE] = read_scale_single_to_float(rir1, 4)
-            data[ATTR_INPUT_1_POWER] = read_scale_double_to_float(rir1, 5)
-            data[ATTR_INPUT_1_ENERGY_TODAY] = read_scale_double_to_float(
-                rir2, 3
-            )
-            data[ATTR_INPUT_1_ENERGY_TOTAL] = read_scale_double_to_float(
-                rir2, 5
-            )
+            data[ATTR_INPUT_1_VOLTAGE] = rssf(rir1, 3)
+            data[ATTR_INPUT_1_AMPERAGE] = rssf(rir1, 4)
+            data[ATTR_INPUT_1_POWER] = rsdf(rir1, 5)
+            data[ATTR_INPUT_1_ENERGY_TODAY] = rsdf(rir2, 3)
+            data[ATTR_INPUT_1_ENERGY_TOTAL] = rsdf(rir2, 5)
 
             # DC input string 2 PV
-            data[ATTR_INPUT_2_VOLTAGE] = read_scale_single_to_float(rir1, 7)
-            data[ATTR_INPUT_2_AMPERAGE] = read_scale_single_to_float(rir1, 8)
-            data[ATTR_INPUT_2_POWER] = read_scale_double_to_float(rir1, 9)
-            data[ATTR_INPUT_2_ENERGY_TODAY] = read_scale_double_to_float(
-                rir2, 7
-            )
-            data[ATTR_INPUT_2_ENERGY_TOTAL] = read_scale_double_to_float(
-                rir2, 9
-            )
+            data[ATTR_INPUT_2_VOLTAGE] = rssf(rir1, 7)
+            data[ATTR_INPUT_2_AMPERAGE] = rssf(rir1, 8)
+            data[ATTR_INPUT_2_POWER] = rsdf(rir1, 9)
+            data[ATTR_INPUT_2_ENERGY_TODAY] = rsdf(rir2, 7)
+            data[ATTR_INPUT_2_ENERGY_TOTAL] = rsdf(rir2, 9)
 
             # AC output grid
-            data[ATTR_OUTPUT_POWER] = read_scale_double_to_float(rir1, 11)
-            data[ATTR_OUTPUT_ENERGY_TODAY] = read_scale_double_to_float(
-                rir1, 26
-            )
-            data[ATTR_OUTPUT_ENERGY_TOTAL] = read_scale_double_to_float(
-                rir1, 28
-            )
-            data[ATTR_OUTPUT_POWER_FACTOR] = read_scale_single_to_float(
-                rir2, 0
-            )
-            data[ATTR_OUTPUT_REACTIVE_POWER] = read_scale_double_to_float(
-                rir2, 13
-            )
-            data[
-                ATTR_OUTPUT_REACTIVE_ENERGY_TODAY
-            ] = read_scale_double_to_float(rir2, 15)
-            data[
-                ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL
-            ] = read_scale_double_to_float(rir2, 17)
-            data[
-                ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL
-            ] = read_scale_double_to_float(rir2, 17)
+            data[ATTR_OUTPUT_POWER] = rsdf(rir1, 11)
+            data[ATTR_OUTPUT_ENERGY_TODAY] = rsdf(rir1, 26)
+            data[ATTR_OUTPUT_ENERGY_TOTAL] = rsdf(rir1, 28)
+            data[ATTR_OUTPUT_POWER_FACTOR] = rssf(rir2, 0)
+            data[ATTR_OUTPUT_REACTIVE_POWER] = rsdf(rir2, 13)
+            data[ATTR_OUTPUT_REACTIVE_ENERGY_TODAY] = rsdf(rir2, 15)
+            data[ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL] = rsdf(rir2, 17)
+            data[ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL] = rsdf(rir2, 17)
 
             # AC output phase 1 grid
-            data[ATTR_OUTPUT_1_VOLTAGE] = read_scale_single_to_float(rir1, 14)
-            data[ATTR_OUTPUT_1_AMPERAGE] = read_scale_single_to_float(rir1, 15)
-            data[ATTR_OUTPUT_1_POWER] = read_scale_double_to_float(rir1, 16)
+            data[ATTR_OUTPUT_1_VOLTAGE] = rssf(rir1, 14)
+            data[ATTR_OUTPUT_1_AMPERAGE] = rssf(rir1, 15)
+            data[ATTR_OUTPUT_1_POWER] = rsdf(rir1, 16)
 
             # AC output phase 2 grid (if used)
-            data[ATTR_OUTPUT_2_VOLTAGE] = read_scale_single_to_float(rir1, 18)
-            data[ATTR_OUTPUT_2_AMPERAGE] = read_scale_single_to_float(rir1, 19)
-            data[ATTR_OUTPUT_2_POWER] = read_scale_double_to_float(rir1, 20)
+            data[ATTR_OUTPUT_2_VOLTAGE] = rssf(rir1, 18)
+            data[ATTR_OUTPUT_2_AMPERAGE] = rssf(rir1, 19)
+            data[ATTR_OUTPUT_2_POWER] = rsdf(rir1, 20)
 
             # AC output phase 3 grid (if used)
-            data[ATTR_OUTPUT_3_VOLTAGE] = read_scale_single_to_float(rir1, 22)
-            data[ATTR_OUTPUT_3_AMPERAGE] = read_scale_single_to_float(rir1, 23)
-            data[ATTR_OUTPUT_3_POWER] = read_scale_double_to_float(rir1, 24)
+            data[ATTR_OUTPUT_3_VOLTAGE] = rssf(rir1, 22)
+            data[ATTR_OUTPUT_3_AMPERAGE] = rssf(rir1, 23)
+            data[ATTR_OUTPUT_3_POWER] = rsdf(rir1, 24)
 
             # Miscellaneous information
-            data[ATTR_OPERATION_HOURS] = read_scale_double_to_float(
-                rir1, 30, 2
-            )
-            data[ATTR_FREQUENCY] = read_scale_single_to_float(rir1, 13, 100)
-            data[ATTR_TEMPERATURE] = read_scale_single_to_float(rir1, 32)
-            data[ATTR_IPM_TEMPERATURE] = read_scale_single_to_float(rir1, 41)
-            data[ATTR_P_BUS_VOLTAGE] = read_scale_single_to_float(rir1, 42)
-            data[ATTR_N_BUS_VOLTAGE] = read_scale_single_to_float(rir1, 43)
+            data[ATTR_OPERATION_HOURS] = rsdf(rir1, 30, 2)
+            data[ATTR_FREQUENCY] = rssf(rir1, 13, 100)
+            data[ATTR_TEMPERATURE] = rssf(rir1, 32)
+            data[ATTR_IPM_TEMPERATURE] = rssf(rir1, 41)
+            data[ATTR_P_BUS_VOLTAGE] = rssf(rir1, 42)
+            data[ATTR_N_BUS_VOLTAGE] = rssf(rir1, 43)
             data[ATTR_DERATING_MODE] = rir2.registers[2]
             data[ATTR_DERATING] = DERATINGMODES[rir2.registers[2]]
 
@@ -275,14 +266,42 @@ class GrowattRS232:
             data[ATTR_WARNING] = WARNINGCODES[rir2.registers[19]]
             data[ATTR_WARNING_VALUE] = rir2.registers[20]
 
-            _LOGGER.debug(f"Data: {data}")
+        except (ConnectionException, ModbusException) as e:
+            self.data = {}
+            raise ModbusError(e)
+        except Exception as e:
+            raise Exception(e)
+        finally:
+            self._client.close()
 
-            if not data:
-                self.data = {}
-                return None
-            self.data = data
+        _LOGGER.debug(f"Data: {data}")
+
+        if not data:
+            self.data = {}
+            return
+
+        self.data = data
+        return
 
     @property
     def available(self):
         """Return True is data is available."""
         return bool(self.data)
+
+
+class PortError(Exception):
+    """Raised when the USB port in not available."""
+
+    def __init__(self, status):
+        """Initialize."""
+        super(PortError, self).__init__(status)
+        self.status = status
+
+
+class ModbusError(Exception):
+    """Raised when the Modbus communication has error."""
+
+    def __init__(self, status):
+        """Initialize."""
+        super(ModbusError, self).__init__(status)
+        self.status = status

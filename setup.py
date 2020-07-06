@@ -35,8 +35,12 @@ setup(
     python_requires=">=3.6, <4",
     install_requires=["pymodbus"],
     include_package_data=True,
+    # fmt: off
     project_urls={
-        "Bug Reports": "https://github.com/ArdescoConsulting/growattRS232/issues",
-        "Source": "https://github.com/ArdescoConsulting/growattRS232",
+        "Bug Reports":
+        "https://github.com/ArdescoConsulting/growattRS232/issues",
+        "Source":
+        "https://github.com/ArdescoConsulting/growattRS232",
     },
+    # fmt: on
 )
