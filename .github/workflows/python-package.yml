@@ -32,7 +32,8 @@ jobs:
       - name: Check with Black Code Formatter
         run: |
           black growattRS232 -t py38 --line-length 79 --check
-      - name: Check with isort
-        run: |
-          isort growattRS232/*.py --check-only --profile black -l 79
+
+#      - name: Check with isort
+#        run: |
+#          isort growattRS232/*.py --check-only --profile black -l 79
 
