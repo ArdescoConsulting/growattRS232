@@ -2,9 +2,10 @@
 Python wrapper for getting data asynchronously from Growatt inverters
 via serial usb RS232 connection and modbus RTU protocol.
 """
-
 import logging
 import os
+
+from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 
 from growattRS232.const import (
     ATTR_DERATING,
@@ -60,7 +61,6 @@ from growattRS232.const import (
     STATUSCODES,
     WARNINGCODES,
 )
-from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -101,7 +101,8 @@ class GrowattRS232:
         )
 
         _LOGGER.debug(
-            f"GrowattRS232 using usb port {self._port} and modbus address {self._unit}"
+            f"GrowattRS232 using usb port {self._port} \
+            and modbus address {self._unit}"
         )
 
     async def async_update(self):
@@ -118,7 +119,9 @@ class GrowattRS232:
 
         if os.path.exists(self._port) and self._client.connect():
             if self.serial_number == "":
-                rhr = self._client.read_holding_registers(0, 30, unit=self._unit)
+                rhr = self._client.read_holding_registers(
+                    0, 30, unit=self._unit
+                )
                 if not rhr.isError():
                     self.firmware = str(
                         chr(rhr.registers[9] >> 8)
@@ -186,37 +189,55 @@ class GrowattRS232:
 
             # DC input PV
             data[ATTR_INPUT_POWER] = read_scale_double_to_float(rir1, 1)
-            data[ATTR_INPUT_ENERGY_TODAY] = read_scale_double_to_float(rir2, 11)
+            data[ATTR_INPUT_ENERGY_TODAY] = read_scale_double_to_float(
+                rir2, 11
+            )
 
             # DC input string 1 PV
             data[ATTR_INPUT_1_VOLTAGE] = read_scale_single_to_float(rir1, 3)
             data[ATTR_INPUT_1_AMPERAGE] = read_scale_single_to_float(rir1, 4)
             data[ATTR_INPUT_1_POWER] = read_scale_double_to_float(rir1, 5)
-            data[ATTR_INPUT_1_ENERGY_TODAY] = read_scale_double_to_float(rir2, 3)
-            data[ATTR_INPUT_1_ENERGY_TOTAL] = read_scale_double_to_float(rir2, 5)
+            data[ATTR_INPUT_1_ENERGY_TODAY] = read_scale_double_to_float(
+                rir2, 3
+            )
+            data[ATTR_INPUT_1_ENERGY_TOTAL] = read_scale_double_to_float(
+                rir2, 5
+            )
 
             # DC input string 2 PV
             data[ATTR_INPUT_2_VOLTAGE] = read_scale_single_to_float(rir1, 7)
             data[ATTR_INPUT_2_AMPERAGE] = read_scale_single_to_float(rir1, 8)
             data[ATTR_INPUT_2_POWER] = read_scale_double_to_float(rir1, 9)
-            data[ATTR_INPUT_2_ENERGY_TODAY] = read_scale_double_to_float(rir2, 7)
-            data[ATTR_INPUT_2_ENERGY_TOTAL] = read_scale_double_to_float(rir2, 9)
+            data[ATTR_INPUT_2_ENERGY_TODAY] = read_scale_double_to_float(
+                rir2, 7
+            )
+            data[ATTR_INPUT_2_ENERGY_TOTAL] = read_scale_double_to_float(
+                rir2, 9
+            )
 
             # AC output grid
             data[ATTR_OUTPUT_POWER] = read_scale_double_to_float(rir1, 11)
-            data[ATTR_OUTPUT_ENERGY_TODAY] = read_scale_double_to_float(rir1, 26)
-            data[ATTR_OUTPUT_ENERGY_TOTAL] = read_scale_double_to_float(rir1, 28)
-            data[ATTR_OUTPUT_POWER_FACTOR] = read_scale_single_to_float(rir2, 0)
-            data[ATTR_OUTPUT_REACTIVE_POWER] = read_scale_double_to_float(rir2, 13)
-            data[ATTR_OUTPUT_REACTIVE_ENERGY_TODAY] = read_scale_double_to_float(
-                rir2, 15
+            data[ATTR_OUTPUT_ENERGY_TODAY] = read_scale_double_to_float(
+                rir1, 26
             )
-            data[ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL] = read_scale_double_to_float(
-                rir2, 17
+            data[ATTR_OUTPUT_ENERGY_TOTAL] = read_scale_double_to_float(
+                rir1, 28
             )
-            data[ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL] = read_scale_double_to_float(
-                rir2, 17
+            data[ATTR_OUTPUT_POWER_FACTOR] = read_scale_single_to_float(
+                rir2, 0
             )
+            data[ATTR_OUTPUT_REACTIVE_POWER] = read_scale_double_to_float(
+                rir2, 13
+            )
+            data[
+                ATTR_OUTPUT_REACTIVE_ENERGY_TODAY
+            ] = read_scale_double_to_float(rir2, 15)
+            data[
+                ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL
+            ] = read_scale_double_to_float(rir2, 17)
+            data[
+                ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL
+            ] = read_scale_double_to_float(rir2, 17)
 
             # AC output phase 1 grid
             data[ATTR_OUTPUT_1_VOLTAGE] = read_scale_single_to_float(rir1, 14)
@@ -234,7 +255,9 @@ class GrowattRS232:
             data[ATTR_OUTPUT_3_POWER] = read_scale_double_to_float(rir1, 24)
 
             # Miscellaneous information
-            data[ATTR_OPERATION_HOURS] = read_scale_double_to_float(rir1, 30, 2)
+            data[ATTR_OPERATION_HOURS] = read_scale_double_to_float(
+                rir1, 30, 2
+            )
             data[ATTR_FREQUENCY] = read_scale_single_to_float(rir1, 13, 100)
             data[ATTR_TEMPERATURE] = read_scale_single_to_float(rir1, 32)
             data[ATTR_IPM_TEMPERATURE] = read_scale_single_to_float(rir1, 41)
