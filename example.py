@@ -19,7 +19,9 @@ async def main():
     growattRS232 = GrowattRS232(port, address)
     await growattRS232.async_update()
     print(
-        f"Model: {growattRS232.model_number}, Serial = {growattRS232.serial_number}, firmware = {growattRS232.firmware}"
+        f"Model: {growattRS232.model_number}, \
+            Serial = {growattRS232.serial_number}, \
+            firmware = {growattRS232.firmware}"
     )
     print(f"Sensors data: {growattRS232.data}")
 

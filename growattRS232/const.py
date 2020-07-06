@@ -1,8 +1,8 @@
 """Constants for growattRS232 library."""
 
 # Defaults
-PORT = "/dev/ttyUSB0"
-ADDRESS = 0x1
+DEFAULT_PORT = "/dev/ttyUSB0"
+DEFAULT_ADDRESS = 0x1
 
 # ATTRIBUTES
 ATTR_SERIAL_NUMBER = "serial_number"
@@ -69,9 +69,9 @@ ATTR_WARNING_VALUE = "warning_value"
 ATTR_WARNING = "warning"
 
 # Codes
-StatusCodes = {0: "Waiting", 1: "Normal", 3: "Fault"}
+STATUSCODES = {0: "Waiting", 1: "Normal", 3: "Fault"}
 
-FaultCodes = {
+FAULTCODES = {
     0: "None",
     24: "Auto Test Failed",
     25: "No AC Connection",
@@ -84,9 +84,9 @@ FaultCodes = {
     32: "Module Hot",
 }
 for i in range(1, 24):
-    FaultCodes[i] = "Generic Error Code: %s" % str(99 + i)
+    FAULTCODES[i] = "Generic Error Code: %s" % str(99 + i)
 
-WarningCodes = {
+WARNINGCODES = {
     0x0000: "None",
     0x0001: "Fan warning",
     0x0002: "String communication abnormal",
@@ -106,7 +106,7 @@ WarningCodes = {
     0x8000: "",
 }
 
-DeratingModes = {
+DERATINGMODES = {
     0: "No Deratring",
     1: "PV",
     2: "",

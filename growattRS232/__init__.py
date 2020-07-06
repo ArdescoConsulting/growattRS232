@@ -1,13 +1,66 @@
 """
-Python wrapper for getting data asynchonously from Growatt inverters via serial usb RS232 connection and modbus RTU protocol.
+Python wrapper for getting data asynchronously from Growatt inverters
+via serial usb RS232 connection and modbus RTU protocol.
 """
 
 import logging
 import os
 
+from growattRS232.const import (
+    ATTR_DERATING,
+    ATTR_DERATING_MODE,
+    ATTR_FAULT,
+    ATTR_FAULT_CODE,
+    ATTR_FIRMWARE,
+    ATTR_FREQUENCY,
+    ATTR_INPUT_1_AMPERAGE,
+    ATTR_INPUT_1_ENERGY_TODAY,
+    ATTR_INPUT_1_ENERGY_TOTAL,
+    ATTR_INPUT_1_POWER,
+    ATTR_INPUT_1_VOLTAGE,
+    ATTR_INPUT_2_AMPERAGE,
+    ATTR_INPUT_2_ENERGY_TODAY,
+    ATTR_INPUT_2_ENERGY_TOTAL,
+    ATTR_INPUT_2_POWER,
+    ATTR_INPUT_2_VOLTAGE,
+    ATTR_INPUT_ENERGY_TODAY,
+    ATTR_INPUT_POWER,
+    ATTR_IPM_TEMPERATURE,
+    ATTR_MODEL_NUMBER,
+    ATTR_N_BUS_VOLTAGE,
+    ATTR_OPERATION_HOURS,
+    ATTR_OUTPUT_1_AMPERAGE,
+    ATTR_OUTPUT_1_POWER,
+    ATTR_OUTPUT_1_VOLTAGE,
+    ATTR_OUTPUT_2_AMPERAGE,
+    ATTR_OUTPUT_2_POWER,
+    ATTR_OUTPUT_2_VOLTAGE,
+    ATTR_OUTPUT_3_AMPERAGE,
+    ATTR_OUTPUT_3_POWER,
+    ATTR_OUTPUT_3_VOLTAGE,
+    ATTR_OUTPUT_ENERGY_TODAY,
+    ATTR_OUTPUT_ENERGY_TOTAL,
+    ATTR_OUTPUT_POWER,
+    ATTR_OUTPUT_POWER_FACTOR,
+    ATTR_OUTPUT_REACTIVE_ENERGY_TODAY,
+    ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL,
+    ATTR_OUTPUT_REACTIVE_POWER,
+    ATTR_P_BUS_VOLTAGE,
+    ATTR_SERIAL_NUMBER,
+    ATTR_STATUS,
+    ATTR_STATUS_CODE,
+    ATTR_TEMPERATURE,
+    ATTR_WARNING,
+    ATTR_WARNING_CODE,
+    ATTR_WARNING_VALUE,
+    DEFAULT_ADDRESS,
+    DEFAULT_PORT,
+    DERATINGMODES,
+    FAULTCODES,
+    STATUSCODES,
+    WARNINGCODES,
+)
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
-
-from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +76,7 @@ def read_scale_double_to_float(rr, index, scale=10):
 class GrowattRS232:
     """Main class to communicate with the Growatt inverter."""
 
-    def __init__(self, port=PORT, address=ADDRESS):
+    def __init__(self, port=DEFAULT_PORT, address=DEFAULT_ADDRESS):
         # Inverter properties
         self.serial_number = ""
         self.model_number = ""
@@ -56,12 +109,18 @@ class GrowattRS232:
 
         data = {}
 
-        # Modbus rtu information from "Growatt PV Inverter Modbus RS485 RTU Protocol V3.14 2016-09-27" specification.
-        # The availability of the attributes depends on the firmware version of your inverter.
+        """
+        Modbus rtu information from
+        "Growatt PV Inverter Modbus RS485 RTU Protocol V3.14 2016-09-27".
+        The availability of the attributes depends
+        on the firmware version of your inverter.
+        """
 
         if os.path.exists(self._port) and self._client.connect():
             if self.serial_number == "":
-                rhr = self._client.read_holding_registers(0, 30, unit=self._unit)
+                rhr = self._client.read_holding_registers(
+                    0, 30, unit=self._unit
+                )
                 if not rhr.isError():
                     self.firmware = str(
                         chr(rhr.registers[9] >> 8)
@@ -102,7 +161,9 @@ class GrowattRS232:
                     )
 
                     _LOGGER.debug(
-                        f"GrowattRS232 with serial number {self.serial_number} is model {self.model_number} and has firmware {self.firmware}"
+                        f"GrowattRS232 with serial number {self.serial_number} \
+                            is model {self.model_number} \
+                            and has firmware {self.firmware}"
                     )
                 else:
                     self.firmware = ""
@@ -130,37 +191,55 @@ class GrowattRS232:
 
             # DC input PV
             data[ATTR_INPUT_POWER] = read_scale_double_to_float(rir1, 1)
-            data[ATTR_INPUT_ENERGY_TODAY] = read_scale_double_to_float(rir2, 11)
+            data[ATTR_INPUT_ENERGY_TODAY] = read_scale_double_to_float(
+                rir2, 11
+            )
 
             # DC input string 1 PV
             data[ATTR_INPUT_1_VOLTAGE] = read_scale_single_to_float(rir1, 3)
             data[ATTR_INPUT_1_AMPERAGE] = read_scale_single_to_float(rir1, 4)
             data[ATTR_INPUT_1_POWER] = read_scale_double_to_float(rir1, 5)
-            data[ATTR_INPUT_1_ENERGY_TODAY] = read_scale_double_to_float(rir2, 3)
-            data[ATTR_INPUT_1_ENERGY_TOTAL] = read_scale_double_to_float(rir2, 5)
+            data[ATTR_INPUT_1_ENERGY_TODAY] = read_scale_double_to_float(
+                rir2, 3
+            )
+            data[ATTR_INPUT_1_ENERGY_TOTAL] = read_scale_double_to_float(
+                rir2, 5
+            )
 
             # DC input string 2 PV
             data[ATTR_INPUT_2_VOLTAGE] = read_scale_single_to_float(rir1, 7)
             data[ATTR_INPUT_2_AMPERAGE] = read_scale_single_to_float(rir1, 8)
             data[ATTR_INPUT_2_POWER] = read_scale_double_to_float(rir1, 9)
-            data[ATTR_INPUT_2_ENERGY_TODAY] = read_scale_double_to_float(rir2, 7)
-            data[ATTR_INPUT_2_ENERGY_TOTAL] = read_scale_double_to_float(rir2, 9)
+            data[ATTR_INPUT_2_ENERGY_TODAY] = read_scale_double_to_float(
+                rir2, 7
+            )
+            data[ATTR_INPUT_2_ENERGY_TOTAL] = read_scale_double_to_float(
+                rir2, 9
+            )
 
             # AC output grid
             data[ATTR_OUTPUT_POWER] = read_scale_double_to_float(rir1, 11)
-            data[ATTR_OUTPUT_ENERGY_TODAY] = read_scale_double_to_float(rir1, 26)
-            data[ATTR_OUTPUT_ENERGY_TOTAL] = read_scale_double_to_float(rir1, 28)
-            data[ATTR_OUTPUT_POWER_FACTOR] = read_scale_single_to_float(rir2, 0)
-            data[ATTR_OUTPUT_REACTIVE_POWER] = read_scale_double_to_float(rir2, 13)
-            data[ATTR_OUTPUT_REACTIVE_ENERGY_TODAY] = read_scale_double_to_float(
-                rir2, 15
+            data[ATTR_OUTPUT_ENERGY_TODAY] = read_scale_double_to_float(
+                rir1, 26
             )
-            data[ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL] = read_scale_double_to_float(
-                rir2, 17
+            data[ATTR_OUTPUT_ENERGY_TOTAL] = read_scale_double_to_float(
+                rir1, 28
             )
-            data[ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL] = read_scale_double_to_float(
-                rir2, 17
+            data[ATTR_OUTPUT_POWER_FACTOR] = read_scale_single_to_float(
+                rir2, 0
             )
+            data[ATTR_OUTPUT_REACTIVE_POWER] = read_scale_double_to_float(
+                rir2, 13
+            )
+            data[
+                ATTR_OUTPUT_REACTIVE_ENERGY_TODAY
+            ] = read_scale_double_to_float(rir2, 15)
+            data[
+                ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL
+            ] = read_scale_double_to_float(rir2, 17)
+            data[
+                ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL
+            ] = read_scale_double_to_float(rir2, 17)
 
             # AC output phase 1 grid
             data[ATTR_OUTPUT_1_VOLTAGE] = read_scale_single_to_float(rir1, 14)
@@ -177,23 +256,25 @@ class GrowattRS232:
             data[ATTR_OUTPUT_3_AMPERAGE] = read_scale_single_to_float(rir1, 23)
             data[ATTR_OUTPUT_3_POWER] = read_scale_double_to_float(rir1, 24)
 
-            # Miscelanuous information
-            data[ATTR_OPERATION_HOURS] = read_scale_double_to_float(rir1, 30, 2)
+            # Miscellaneous information
+            data[ATTR_OPERATION_HOURS] = read_scale_double_to_float(
+                rir1, 30, 2
+            )
             data[ATTR_FREQUENCY] = read_scale_single_to_float(rir1, 13, 100)
             data[ATTR_TEMPERATURE] = read_scale_single_to_float(rir1, 32)
             data[ATTR_IPM_TEMPERATURE] = read_scale_single_to_float(rir1, 41)
             data[ATTR_P_BUS_VOLTAGE] = read_scale_single_to_float(rir1, 42)
             data[ATTR_N_BUS_VOLTAGE] = read_scale_single_to_float(rir1, 43)
             data[ATTR_DERATING_MODE] = rir2.registers[2]
-            data[ATTR_DERATING] = DeratingModes[rir2.registers[2]]
+            data[ATTR_DERATING] = DERATINGMODES[rir2.registers[2]]
 
             # Status, faults & warnings
             data[ATTR_STATUS_CODE] = rir1.registers[0]
-            data[ATTR_STATUS] = StatusCodes[rir1.registers[0]]
+            data[ATTR_STATUS] = STATUSCODES[rir1.registers[0]]
             data[ATTR_FAULT_CODE] = rir1.registers[40]
-            data[ATTR_FAULT] = FaultCodes[rir1.registers[40]]
+            data[ATTR_FAULT] = FAULTCODES[rir1.registers[40]]
             data[ATTR_WARNING_CODE] = rir2.registers[19]
-            data[ATTR_WARNING] = WarningCodes[rir2.registers[19]]
+            data[ATTR_WARNING] = WARNINGCODES[rir2.registers[19]]
             data[ATTR_WARNING_VALUE] = rir2.registers[20]
 
             _LOGGER.debug(f"Data: {data}")
