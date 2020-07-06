@@ -1,0 +1,11 @@
+asynctest
+flake8
+black
+isort
+pytest
+rope
+setuptools
+setuptools-scm
+twine
+wheel
+zipp
