@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7]
 
     steps:
       - uses: actions/checkout@v2
@@ -34,4 +34,5 @@ jobs:
           black growattRS232 -t py38 --line-length 79 --check
       - name: Check with isort
         run: |
-          isort --profile black --line-length 79 --check-only growattRS232/*.py
+          isort growattRS232/*.py --profile black --check-only
+
