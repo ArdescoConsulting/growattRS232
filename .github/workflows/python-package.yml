@@ -34,5 +34,5 @@ jobs:
           black growattRS232 -t py38 --line-length 79 --check
       - name: Check with isort
         run: |
-          isort growattRS232/*.py --check-only -m 3 -tc -fgw 0 -up -n -l 79
+          isort growattRS232/*.py --check-only -m 3 -tc -fgw 0 -up -l 79
 
