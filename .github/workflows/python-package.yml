@@ -34,4 +34,4 @@ jobs:
           black growattRS232 -t py38 --line-length 79 --check
       - name: Check with isort
         run: |
-          isort -m VERTICAL_HANGING_INDENT --trailing-comma --force-grid-wrap 0 --use-parentheses --ensure-newline-before-comments --line-length 79 --check-only growattRS232/*.py
+          isort -m 3 --trailing-comma --force-grid-wrap 0 --use-parentheses --ensure-newline-before-comments --line-length 79 --check-only growattRS232/*.py
