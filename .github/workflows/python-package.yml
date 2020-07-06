@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pymodbus flake8 black isort==4.3.21 pytest
+          pip install pymodbus flake8 black isort pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with flake8
         run: |
@@ -34,5 +34,5 @@ jobs:
           black growattRS232 -t py38 --line-length 79 --check
       - name: Check with isort
         run: |
-          isort growattRS232/*.py --check-only -m 3 -tc -fgw 0 -up -l 79
+          isort growattRS232/*.py --check-only -m 3 -tc -fgw 0 -up --ensure-newline-before-comments -l 79
 
