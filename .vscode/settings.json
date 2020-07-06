@@ -13,6 +13,7 @@
         "Tinv",
         "USERPROFILE",
         "autopep",
+        "isort",
         "ludeeus",
         "mypy",
         "pycodestyle",
