@@ -32,7 +32,7 @@ jobs:
         flake8 growattRS232 --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Check with Black Code Formatter
       run: |
-        black growattRS232 -t py38 --check
+        black growattRS232 -t py38 --line-length 79 --check
     - name: Check with isort
       run: |
         isort growattRS232/*.py --check-only
