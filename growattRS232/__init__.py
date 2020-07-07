@@ -252,7 +252,7 @@ class GrowattRS232:
         data[ATTR_OUTPUT_3_POWER] = rsdf(rir1, 24)
 
         # Miscellaneous information
-        data[ATTR_OPERATION_HOURS] = rsdf(rir1, 30, 2)
+        data[ATTR_OPERATION_HOURS] = rsdf(rir1, 30, 7200)
         data[ATTR_FREQUENCY] = rssf(rir1, 13, 100)
         data[ATTR_TEMPERATURE] = rssf(rir1, 32)
         data[ATTR_IPM_TEMPERATURE] = rssf(rir1, 41)
