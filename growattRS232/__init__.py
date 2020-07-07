@@ -25,7 +25,7 @@ from growattRS232.const import (
     ATTR_INPUT_2_ENERGY_TOTAL,
     ATTR_INPUT_2_POWER,
     ATTR_INPUT_2_VOLTAGE,
-    ATTR_INPUT_ENERGY_TODAY,
+    ATTR_INPUT_ENERGY_TOTAL,
     ATTR_INPUT_POWER,
     ATTR_IPM_TEMPERATURE,
     ATTR_MODEL_NUMBER,
@@ -43,7 +43,6 @@ from growattRS232.const import (
     ATTR_OUTPUT_ENERGY_TODAY,
     ATTR_OUTPUT_ENERGY_TOTAL,
     ATTR_OUTPUT_POWER,
-    ATTR_OUTPUT_POWER_FACTOR,
     ATTR_OUTPUT_REACTIVE_ENERGY_TODAY,
     ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL,
     ATTR_OUTPUT_REACTIVE_POWER,
@@ -210,16 +209,14 @@ class GrowattRS232:
 
         # DC input PV
         data[ATTR_INPUT_POWER] = rsdf(rir1, 1)
-        data[ATTR_INPUT_ENERGY_TODAY] = rsdf(rir2, 11)
+        data[ATTR_INPUT_ENERGY_TOTAL] = rsdf(rir2, 11)
 
         # AC output grid
         data[ATTR_OUTPUT_POWER] = rsdf(rir1, 11)
         data[ATTR_OUTPUT_ENERGY_TODAY] = rsdf(rir1, 26)
         data[ATTR_OUTPUT_ENERGY_TOTAL] = rsdf(rir1, 28)
-        data[ATTR_OUTPUT_POWER_FACTOR] = rssf(rir2, 0)
         data[ATTR_OUTPUT_REACTIVE_POWER] = rsdf(rir2, 13)
         data[ATTR_OUTPUT_REACTIVE_ENERGY_TODAY] = rsdf(rir2, 15)
-        data[ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL] = rsdf(rir2, 17)
         data[ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL] = rsdf(rir2, 17)
 
         # DC input string 1 PV

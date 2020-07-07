@@ -13,7 +13,7 @@ ATTR_STATUS = "status"
 ATTR_STATUS_CODE = "status_code"
 
 ATTR_INPUT_POWER = "input_power"  # W
-ATTR_INPUT_ENERGY_TODAY = "input_energy_today"  # kWh
+ATTR_INPUT_ENERGY_TOTAL = "input_energy_total"  # kWh
 
 ATTR_INPUT_1_VOLTAGE = "input_1_voltage"  # V
 ATTR_INPUT_1_AMPERAGE = "input_1_amperage"  # A
@@ -31,7 +31,6 @@ ATTR_OUTPUT_POWER = "output_power"  # W
 ATTR_OUTPUT_ENERGY_TODAY = "output_energy_today"  # kWh
 ATTR_OUTPUT_ENERGY_TOTAL = "output_energy_total"  # kWh
 
-ATTR_OUTPUT_POWER_FACTOR = "power_factor"
 ATTR_OUTPUT_REACTIVE_POWER = "output_reactive_power"  # Var
 ATTR_OUTPUT_REACTIVE_ENERGY_TODAY = "output_reactive_energy_today"  # kVarh
 ATTR_OUTPUT_REACTIVE_ENERGY_TOTAL = "output_reactive_energy_total"  # kVarh
