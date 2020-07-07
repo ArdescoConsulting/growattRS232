@@ -14,17 +14,20 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 async def main():
-    port = argv[1] if len(argv) > 1 else DEFAULT_PORT
-    address = argv[2] if len(argv) > 2 else DEFAULT_ADDRESS
+    port = str(argv[1]) if len(argv) > 1 else DEFAULT_PORT
+    address = int(argv[2]) if len(argv) > 2 else DEFAULT_ADDRESS
     growattRS232 = GrowattRS232(port, address)
     try:
         await growattRS232.async_update()
         print(
-            f"Model: {growattRS232.model_number}, \
-                Serial = {growattRS232.serial_number}, \
-                firmware = {growattRS232.firmware}"
+            (
+                f"Model: {growattRS232.model_number} "
+                f"Serial = {growattRS232.serial_number} "
+                f"firmware = {growattRS232.firmware}"
+            )
         )
         print(f"Sensors data: {growattRS232.data}")
+        print(f"Last update: {growattRS232.last_update}")
     except Exception as error:
         print("Error: " + repr(error))
 
