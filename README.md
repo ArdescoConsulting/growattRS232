@@ -111,16 +111,8 @@ async def main():
     address = int(argv[2]) if len(argv) > 2 else DEFAULT_ADDRESS
     growattRS232 = GrowattRS232(port, address)
     try:
-        await growattRS232.async_update()
-        print(
-            (
-                f"Model: {growattRS232.model_number} "
-                f"Serial = {growattRS232.serial_number} "
-                f"firmware = {growattRS232.firmware}"
-            )
-        )
-        print(f"Sensors data: {growattRS232.data}")
-        print(f"Last update: {growattRS232.last_update}")
+        data = await growattRS232.async_update()
+        print(f"Sensors data: {data}")
     except Exception as error:
         print("Error: " + repr(error))
 

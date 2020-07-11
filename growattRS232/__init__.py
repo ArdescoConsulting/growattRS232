@@ -80,14 +80,10 @@ class GrowattRS232:
 
     def __init__(self, port=DEFAULT_PORT, address=DEFAULT_ADDRESS):
         # Inverter properties
-        self.serial_number = ""
-        self.model_number = ""
-        self.firmware = ""
-        self.last_update = None
-
-        # Inverter data
-        self.data = {}
-
+        self._serial_number = ""
+        self._model_number = ""
+        self._firmware = ""
+        self._last_update = None
         # usb port
         self._port = port
         # Modbus address (1-247)
@@ -123,13 +119,11 @@ class GrowattRS232:
         data = {}
 
         if not os.path.exists(self._port):
-            self.data = {}
             _LOGGER.debug(f"USB port {self._port} is not available")
             raise PortException(f"USB port {self._port} is not available")
 
         self._client.timeout = True
         if not self._client.connect():
-            self.data = {}
             _LOGGER.debug("Modbus connection failed.")
             raise ModbusException("Modbus connection failed.")
 
@@ -137,12 +131,11 @@ class GrowattRS232:
             # Assuming the serial number doesn't change, it is read only once
             rhr = self._client.read_holding_registers(0, 30, unit=self._unit)
             if rhr.isError():
-                self.data = {}
                 self._client.close()
                 _LOGGER.debug("rhr Modbus read failed.")
                 raise ModbusException("Modbus read failed.")
 
-            self.firmware = str(
+            self._firmware = str(
                 chr(rhr.registers[9] >> 8)
                 + chr(rhr.registers[9] & 0x000000FF)
                 + chr(rhr.registers[10] >> 8)
@@ -151,7 +144,7 @@ class GrowattRS232:
                 + chr(rhr.registers[11] & 0x000000FF)
             )
 
-            self.serial_number = str(
+            self._serial_number = str(
                 chr(rhr.registers[23] >> 8)
                 + chr(rhr.registers[23] & 0x000000FF)
                 + chr(rhr.registers[24] >> 8)
@@ -165,7 +158,7 @@ class GrowattRS232:
             )
 
             mo = (rhr.registers[28] << 16) + rhr.registers[29]
-            self.model_number = (
+            self._model_number = (
                 "T"
                 + str((mo & 0xF00000) >> 20)
                 + " Q"
@@ -190,22 +183,20 @@ class GrowattRS232:
 
         rir1 = self._client.read_input_registers(0, 44, unit=self._unit)
         if rir1.isError():
-            self.data = {}
             self._client.close()
             _LOGGER.debug("rir1 Modbus read failed.")
             raise ModbusException("Modbus read failed.")
 
         rir2 = self._client.read_input_registers(45, 21, unit=self._unit)
         if rir2.isError():
-            self.data = {}
             self._client.close()
             _LOGGER.debug("rir2 Modbus read failed.")
             raise ModbusException("Modbus read failed.")
 
         # Inverter properties
-        data[ATTR_SERIAL_NUMBER] = self.serial_number
-        data[ATTR_MODEL_NUMBER] = self.model_number
-        data[ATTR_FIRMWARE] = self.firmware
+        data[ATTR_SERIAL_NUMBER] = self._serial_number
+        data[ATTR_MODEL_NUMBER] = self._model_number
+        data[ATTR_FIRMWARE] = self._firmware
 
         # DC input PV
         data[ATTR_INPUT_POWER] = rsdf(rir1, 1)
@@ -272,17 +263,10 @@ class GrowattRS232:
         _LOGGER.debug(f"Data: {data}")
 
         if not data:
-            self.data = {}
-            return
+            return {}
 
-        self.last_update = datetime.now()
-        self.data = data
-        return
-
-    @property
-    def available(self):
-        """Return True is data is available."""
-        return bool(self.data)
+        self._last_update = datetime.now()
+        return data
 
 
 class PortException(Exception):
