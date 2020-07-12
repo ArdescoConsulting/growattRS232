@@ -9,7 +9,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="growattRS232",
-    version="0.5.2",
+    version="0.5.3",
     description=(
         "Python wrapper for getting data asynchronously "
         "from Growatt inverters "
