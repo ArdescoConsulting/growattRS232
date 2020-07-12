@@ -80,9 +80,12 @@ class GrowattRS232:
         self, port=DEFAULT_PORT, address=DEFAULT_ADDRESS, logger=None
     ):
         """Initialize."""
-        self._LOGGER = logger or logging.getLogger(__name__).addHandler(
-            logging.NullHandler()
-        )
+        if logger is None:
+            self._LOGGER = logging.getLogger(__name__).addHandler(
+                logging.NullHandler()
+            )
+        else:
+            self._LOGGER = logger
         # Inverter properties."""
         self._serial_number = ""
         self._model_number = ""
