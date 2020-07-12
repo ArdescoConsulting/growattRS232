@@ -127,7 +127,7 @@ class GrowattRS232:
             _LOGGER.debug("Modbus connection failed.")
             raise ModbusException("Modbus connection failed.")
 
-        if self.serial_number == "":
+        if self._serial_number == "":
             # Assuming the serial number doesn't change, it is read only once
             rhr = self._client.read_holding_registers(0, 30, unit=self._unit)
             if rhr.isError():

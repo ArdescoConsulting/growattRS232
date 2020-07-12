@@ -16,6 +16,7 @@
         "autopep",
         "derating",
         "isort",
+        "kvarh",
         "modbus",
         "mypy",
         "pycodestyle",
