@@ -62,8 +62,6 @@ from growattRS232.const import (
     WARNINGCODES,
 )
 
-_LOGGER = logging.getLogger(__name__).addHandler(logging.NullHandler())
-
 
 def rssf(rr, index, scale=10):
     """Read and scale single to float."""
@@ -82,6 +80,12 @@ class GrowattRS232:
         self, port=DEFAULT_PORT, address=DEFAULT_ADDRESS, logger=None
     ):
         """Initialize."""
+        if logger is None:
+            self._logger = logging.getLogger(__name__)
+            self._logger.addHandler(logging.NullHandler())
+        else:
+            self._logger = logger
+
         # Inverter properties."""
         self._serial_number = ""
         self._model_number = ""
@@ -102,7 +106,7 @@ class GrowattRS232:
             timeout=1,
         )
 
-        _LOGGER.debug(
+        self._logger.debug(
             (
                 f"GrowattRS232 initialized with usb port {self._port} "
                 f"and modbus address {self._unit}."
@@ -122,12 +126,12 @@ class GrowattRS232:
         data = {}
 
         if not os.path.exists(self._port):
-            _LOGGER.debug(f"USB port {self._port} is not available")
+            self._logger.debug(f"USB port {self._port} is not available")
             raise PortException(f"USB port {self._port} is not available")
 
         self._client.timeout = True
         if not self._client.connect():
-            _LOGGER.debug(
+            self._logger.debug(
                 f"Modbus connection failed for address {self._unit}."
             )
             raise ModbusException(
@@ -139,7 +143,7 @@ class GrowattRS232:
             rhr = self._client.read_holding_registers(0, 30, unit=self._unit)
             if rhr.isError():
                 self._client.close()
-                _LOGGER.debug("Modbus read failed for rhr.")
+                self._logger.debug("Modbus read failed for rhr.")
                 raise ModbusException("Modbus read failed for rhr.")
 
             self._firmware = str(
@@ -180,7 +184,7 @@ class GrowattRS232:
                 + str((mo & 0x00000F))
             )
 
-            _LOGGER.debug(
+            self._logger.debug(
                 (
                     f"GrowattRS232 with serial number {self._serial_number} "
                     f"is model {self._model_number} "
@@ -191,13 +195,13 @@ class GrowattRS232:
         rir1 = self._client.read_input_registers(0, 44, unit=self._unit)
         if rir1.isError():
             self._client.close()
-            _LOGGER.debug("Modbus read failed for rir1.")
+            self._logger.debug("Modbus read failed for rir1.")
             raise ModbusException("Modbus read failed for rir1.")
 
         rir2 = self._client.read_input_registers(45, 21, unit=self._unit)
         if rir2.isError():
             self._client.close()
-            _LOGGER.debug("Modbus read failed for rir2.")
+            self._logger.debug("Modbus read failed for rir2.")
             raise ModbusException("Modbus read failed for rir2")
 
         self._client.close()
