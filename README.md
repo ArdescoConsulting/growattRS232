@@ -90,7 +90,7 @@ Status, faults & warnings
 
 ## How to use the package
 
-``` py
+```py
 import asyncio
 import logging
 from sys import argv
